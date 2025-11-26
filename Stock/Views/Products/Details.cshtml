@@ -1,0 +1,43 @@
+﻿@model Stock.Models.Product
+
+@{
+    ViewData["Title"] = "Chi tiết sản phẩm";
+}
+
+<link href="~/css/detailsstyle.css" rel="stylesheet" />
+
+<div class="container">
+    <a href="/Products/Index" class="btn btn-secondary mb-3">← Quay lại</a>
+
+    <div class="detail-container">
+        <div class="left-col">
+            @{
+                string imgFileName = !string.IsNullOrEmpty(Model.ImageUrl) ? Model.ImageUrl : $"{Model.Code}.png";
+                string imgPath = $"/images/{imgFileName}";
+            }
+            <img src="@imgPath" class="detail-img" alt="@Model.Name"
+                 onerror="this.onerror=null; this.src='/images/anh.png';" />
+        </div>
+
+        <div class="right-col">
+            <h2 class="p-name">@Model.Name</h2>
+            <p><strong>Mã SP:</strong> @Model.Code</p>
+            <div class="p-price">
+                @(Model.Price.HasValue ? Model.Price.Value.ToString("N0") + " ₫" : "Liên hệ")
+            </div>
+            <p><strong>Số lượng:</strong> @Model.Quantity</p>
+            <hr />
+            <p><strong>Mô tả:</strong></p>
+            <div>
+                @if (!string.IsNullOrEmpty(Model.Description))
+                {
+                    @Html.Raw(Model.Description.Replace("\n", "<br>"))
+                }
+                else
+                {
+                    <span>Đang cập nhật...</span>
+                }
+            </div>
+        </div>
+    </div>
+</div>

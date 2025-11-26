@@ -1,0 +1,43 @@
+﻿@model IEnumerable<Stock.Models.Product>
+
+
+@{
+    ViewData["Title"] = "Danh sách sản phẩm";
+    // Cấu hình IP máy của bạn để điện thoại quét được (Thay số này bằng IP thật)
+    string myIpAddress = "192.168.1.8";
+    string port = "5000"; // Port mặc định của .NET (thường là 5000 hoặc 7xxx)
+}
+
+<link href="~/css/indexstyle.css" rel="stylesheet" />
+
+<h2 class="text-center text-uppercase text-primary mb-4">Danh Sách Robot</h2>
+
+<div class="product-grid">
+    @foreach (var item in Model)
+    {
+        // Tạo link chi tiết dựa trên IP LAN để điện thoại quét được
+        // URL dạng: http://192.168.1.8:5000/Products/Details/5
+        string detailUrl = $"http://{myIpAddress}:{port}/Products/Details/{item.Id}";
+
+        // Tạo link ảnh QR từ API
+        string qrApiUrl = $"https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={detailUrl}";
+
+        // Ảnh sản phẩm (Giả sử bạn chưa có ảnh thật, dùng ảnh mẫu)
+        string imgSrc = "https://cdn-icons-png.flaticon.com/512/4712/4712109.png";
+
+        <div class="product-card">
+            <img src="@imgSrc" class="product-img" alt="@item.Name" />
+
+            <div class="card-body">
+                <div class="product-code">Mã: @item.Code</div> <div class="product-title">@item.Name</div>
+                <div class="product-price">@item.Price?.ToString("N0") ₫</div>
+
+                <div class="action-area">
+                    <img src="@qrApiUrl" class="qr-thumb" title="Quét mã để xem trên điện thoại" />
+
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn-detail">Chi tiết →</a>
+                </div>
+            </div>
+        </div>
+    }
+</div>

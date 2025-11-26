@@ -1,0 +1,55 @@
+﻿@model Stock.Models.StockTransaction
+@{
+    ViewData["Title"] = "Ghi nhận Xuất kho";
+}
+
+<div class="container mt-4" style="max-width: 700px;">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-danger text-white py-3">
+            <h4 class="mb-0 fw-bold text-center text-uppercase">⬆️ GHI NHẬN XUẤT KHO</h4>
+        </div>
+        <div class="card-body p-4">
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger fw-bold text-center">@TempData["Error"]</div>
+            }
+
+            <form asp-action="ReportExp">
+                <div class="mb-4">
+                    <label class="form-label fw-bold fs-5">📦 Chọn Sản Phẩm</label>
+                    <select asp-for="ProductId" class="form-select form-select-lg border-danger" asp-items="ViewBag.ProductId">
+                        <option value="">-- Chọn sản phẩm --</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Thời gian xuất</label>
+                    <input asp-for="ExportDateTime" class="form-control" type="datetime-local" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-danger">Số lượng xuất (-)</label>
+                    <input asp-for="ExportQuantity" class="form-control border-danger fw-bold" type="number" value="0" min="0" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Giá xuất</label>
+                    <input asp-for="ExportPrice" class="form-control" type="number" value="0" min="0" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Đơn vị tính <span class="text-danger">*</span></label>
+                    <input asp-for="Unit" class="form-control" placeholder="Ví dụ: Cái, Hộp, Kg..." required />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Ghi chú</label>
+                    <input asp-for="Note" class="form-control" placeholder="Nhập ghi chú nếu có..." />
+                </div>
+
+                <div class="d-grid gap-2 mt-4">
+                    <button type="submit" class="btn btn-danger btn-lg fw-bold shadow-sm">💾 LƯU XUẤT KHO</button>
+                    <a asp-action="Index" class="btn btn-secondary">Quay lại danh sách</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

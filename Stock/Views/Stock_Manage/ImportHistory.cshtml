@@ -1,0 +1,53 @@
+﻿@model IEnumerable<Stock.Models.StockTransaction>
+@{
+    ViewData["Title"] = "Lịch sử Nhập kho";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="text-success fw-bold">⬇️ LỊCH SỬ NHẬP HÀNG</h2>
+        <div>
+            <a asp-action="Report" class="btn btn-success fw-bold">+ Nhập thêm hàng</a>
+            <a asp-action="Index" class="btn btn-secondary">Xem tất cả</a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-success">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">Danh sách phiếu nhập</h5>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-hover table-striped align-middle mb-0 text-center">
+                <thead class="table-success">
+                    <tr>
+                        <th>Ngày nhập</th>
+                        <th class="text-start">Sản phẩm</th>
+                        <th>Số lượng</th>
+                        <th>Giá vốn</th>
+                        <th>Tổng tiền nhập</th>
+                        <th>Tồn sau nhập</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.ImportDateTime.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td class="text-start fw-bold text-primary">@item.Product?.Name</td>
+
+                            <td class="fw-bold text-success fs-5">+@item.ImportQuantity</td>
+
+                            <td>@item.ImportPrice.ToString("N0") ₫</td>
+
+                            <td class="fw-bold text-dark">
+                                @((item.ImportQuantity * item.ImportPrice).ToString("N0")) ₫
+                            </td>
+
+                            <td>@item.StockRemaining</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

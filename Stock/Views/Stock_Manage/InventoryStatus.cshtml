@@ -1,0 +1,57 @@
+﻿@model IEnumerable<Stock.Models.InventoryStatusViewModel>
+@{
+    ViewData["Title"] = "Báo cáo Tồn kho";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-warning fw-bold text-uppercase">📊 BÁO CÁO TỒN KHO TỔNG HỢP</h2>
+        <a asp-action="Index" class="btn btn-secondary">← Quay lại Dashboard</a>
+    </div>
+
+    <div class="card shadow border-0">
+        <div class="card-body p-0">
+            <table class="table table-hover table-bordered align-middle mb-0 text-center">
+                <thead class="bg-warning text-dark">
+                    <tr>
+                        <th>Ảnh</th>
+                        <th>Mã SP</th>
+                        <th class="text-start">Tên Sản Phẩm</th>
+                        <th class="text-success">Tổng Nhập</th>
+                        <th class="text-danger">Tổng Xuất</th>
+                        <th class="fw-bold bg-warning bg-opacity-25">Tồn Hiện Tại</th>
+                        <th>Chi tiết</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        string imgPath = string.IsNullOrEmpty(item.ImageUrl) ? "/images/anh.png" : $"/images/{item.ImageUrl}";
+
+                        <tr>
+                            <td style="width: 60px;">
+                                <img src="@imgPath" style="width: 50px; height: 50px; object-fit: contain;" class="rounded border bg-white" />
+                            </td>
+                            <td class="fw-bold text-muted">@item.ProductCode</td>
+                            <td class="text-start fw-bold text-primary">@item.ProductName</td>
+
+                            <td class="text-success fw-bold">+@item.TotalImport</td>
+
+                            <td class="text-danger fw-bold">-@item.TotalExport</td>
+
+                            <td class="fw-bold fs-5 @(item.CurrentStock < 10 ? "text-danger" : "text-dark")">
+                                @item.CurrentStock
+                            </td>
+
+                            <td>
+                                <a asp-action="InventoryDetails" asp-route-id="@item.ProductId" class="btn btn-sm btn-outline-primary">
+                                    🔍 Xem lịch sử
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

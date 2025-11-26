@@ -1,0 +1,56 @@
+﻿@model Stock.Models.StockTransaction
+@{
+    ViewData["Title"] = "Ghi nhận Nhập kho";
+}
+
+<div class="container mt-4" style="max-width: 700px;">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-success text-white py-3">
+            <h4 class="mb-0 fw-bold text-center text-uppercase">⬇️ GHI NHẬN NHẬP KHO</h4>
+        </div>
+        <div class="card-body p-4">
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger fw-bold text-center">@TempData["Error"]</div>
+            }
+
+            <form asp-action="ReportImp">
+                <div class="mb-4">
+                    <label class="form-label fw-bold fs-5">📦 Chọn Sản Phẩm</label>
+                    <select asp-for="ProductId" class="form-select form-select-lg border-success" asp-items="ViewBag.ProductId">
+                        <option value="">-- Chọn sản phẩm --</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Thời gian nhập</label>
+                    <input asp-for="ImportDateTime" class="form-control" type="datetime-local" value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-success">Số lượng nhập (+)</label>
+                    <input asp-for="ImportQuantity" class="form-control border-success fw-bold" type="number" value="0" min="0" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Giá nhập</label>
+                    <input asp-for="ImportPrice" class="form-control" type="number" value="0" min="0" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Đơn vị tính <span class="text-danger">*</span></label>
+                    <input asp-for="Unit" class="form-control" placeholder="Ví dụ: Cái, Hộp, Kg..." required />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Ghi chú</label>
+                    <input asp-for="Note" class="form-control" placeholder="Nhập ghi chú nếu có..." />
+                </div>
+
+                <div class="d-grid gap-2 mt-4">
+                    <button type="submit" class="btn btn-success btn-lg fw-bold shadow-sm">💾 LƯU NHẬP KHO</button>
+                    <a asp-action="Index" class="btn btn-secondary">Quay lại danh sách</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+

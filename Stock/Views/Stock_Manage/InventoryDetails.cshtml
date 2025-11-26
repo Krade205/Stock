@@ -1,0 +1,111 @@
+﻿@model Stock.Models.ProductInventoryViewModel
+@{
+    ViewData["Title"] = "Chi tiết tồn kho: " + Model.Product.Name;
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="text-primary fw-bold mb-0">📦 @Model.Product.Name</h3>
+            <span class="badge bg-secondary">Mã: @Model.Product.Code</span>
+        </div>
+        <a asp-controller="Stock_Manage" asp-action="InventoryStatus" class="btn btn-secondary">← Quay lại danh sách</a>
+    </div>
+
+    <div class="row g-4 text-center mb-5">
+        <div class="col-md-4">
+            <div class="p-3 border rounded bg-success bg-opacity-10 border-success">
+                <h5 class="text-success fw-bold">⬇️ TỔNG NHẬP</h5>
+                <h2 class="fw-bold mb-0">@Model.TotalImport</h2>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-3 border rounded bg-danger bg-opacity-10 border-danger">
+                <h5 class="text-danger fw-bold">⬆️ TỔNG XUẤT</h5>
+                <h2 class="fw-bold mb-0">@Model.TotalExport</h2>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-3 border rounded bg-warning bg-opacity-10 border-warning">
+                <h5 class="text-dark fw-bold">📦 TỒN HIỆN TẠI</h5>
+                <h2 class="fw-bold mb-0">@Model.CurrentStock</h2>
+            </div>
+        </div>
+    </div>
+
+    <h4 class="fw-bold text-muted mb-3">📜 NHẬT KÝ GIAO DỊCH CHI TIẾT</h4>
+
+    <div class="row">
+        @if (Model.Transactions.Count == 0)
+        {
+            <div class="col-12 text-center text-muted py-5">
+                <i>Chưa có giao dịch nào cho sản phẩm này.</i>
+            </div>
+        }
+
+        @foreach (var item in Model.Transactions)
+        {
+            // Xác định màu sắc: Nhập = Xanh, Xuất = Đỏ
+            bool isImport = item.ImportQuantity > 0;
+            string themeColor = isImport ? "success" : "danger";
+            string title = isImport ? "PHIẾU NHẬP KHO" : "PHIẾU XUẤT KHO";
+            string icon = isImport ? "⬇️" : "⬆️";
+
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card shadow-sm border-0 h-100">
+
+                    <div class="card-header text-white text-center py-2 bg-@themeColor">
+                        <h5 class="mb-0 fw-bold">@icon @title</h5>
+                        <small class="opacity-75">Mã phiếu: #@item.Id</small>
+                    </div>
+
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between px-0">
+                                <span class="text-muted">🕒 Thời gian:</span>
+                                <span class="fw-bold">
+                                    @(isImport ? item.ImportDateTime.ToString("dd/MM/yyyy HH:mm") : item.ExportDateTime?.ToString("dd/MM/yyyy HH:mm"))
+                                </span>
+                            </li>
+
+                            <li class="list-group-item d-flex justify-content-between px-0 bg-light rounded my-2 px-2">
+                                <span>📦 Số lượng:</span>
+                                <span class="fs-5 fw-bold text-@themeColor">
+                                    @(isImport ? "+" + item.ImportQuantity : "-" + item.ExportQuantity)
+                                    <small class="text-muted fs-6 text-dark">@item.Unit</small>
+                                </span>
+                            </li>
+
+                            <li class="list-group-item d-flex justify-content-between px-0">
+                                <span class="text-muted">💲 Đơn giá:</span>
+                                <span class="fw-bold">
+                                    @(isImport ? item.ImportPrice.ToString("N0") : item.ExportPrice?.ToString("N0")) ₫
+                                </span>
+                            </li>
+
+                            <li class="list-group-item d-flex justify-content-between px-0">
+                                <span class="text-muted">💰 Tổng giá trị:</span>
+                                <span class="fw-bold text-primary">
+                                    @(isImport ? (item.ImportPrice * item.ImportQuantity).ToString("N0") : (item.ExportPrice * item.ExportQuantity)?.ToString("N0")) ₫
+                                </span>
+                            </li>
+
+                            <li class="list-group-item d-flex justify-content-between px-0">
+                                <span class="text-muted">📊 Tồn sau GD:</span>
+                                <span class="fw-bold text-dark">@item.StockRemaining</span>
+                            </li>
+
+                            @if (!string.IsNullOrEmpty(item.Note))
+                            {
+                                <li class="list-group-item px-0 pt-2">
+                                    <span class="fw-bold d-block text-secondary" style="font-size: 12px;">📝 Ghi chú:</span>
+                                    <span class="text-muted fst-italic small">@item.Note</span>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

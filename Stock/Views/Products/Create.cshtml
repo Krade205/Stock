@@ -1,0 +1,74 @@
+﻿@model Stock.Models.Product
+@{
+    ViewData["Title"] = "Thêm sản phẩm mới";
+}
+
+<div class="container mt-4" style="max-width: 800px;">
+    <div class="card shadow border-0">
+        <div class="card-header bg-primary text-white text-center py-3">
+            <h4 class="fw-bold mb-0">THÊM SẢN PHẨM MỚI</h4>
+        </div>
+        <div class="card-body p-4">
+
+            <form asp-action="Create" enctype="multipart/form-data" id="createForm">
+
+                <div class="row">
+                    <div class="col-md-7">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Mã sản phẩm <span class="text-danger">*</span></label>
+                            <input asp-for="Code" class="form-control" placeholder="VD: SB001" required />
+                            <span asp-validation-for="Code" class="text-danger small"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tên sản phẩm <span class="text-danger">*</span></label>
+                            <input asp-for="Name" class="form-control" required />
+                        </div>
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label class="form-label fw-bold">Giá bán</label>
+                                <input asp-for="Price" type="number" class="form-control" />
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label class="form-label fw-bold">Số lượng</label>
+                                <input asp-for="Quantity" type="number" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Mô tả</label>
+                            <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="col-md-5">
+                        <label class="form-label fw-bold">Hình ảnh</label>
+
+                        <div id="drop-zone" class="upload-box text-center p-3 border border-2 border-dashed rounded bg-light d-flex flex-column justify-content-center align-items-center"
+                             onclick="document.getElementById('imageFile').click();"
+                             style="cursor: pointer; min-height: 250px; transition: 0.3s;">
+
+                            <img id="previewImg" src="#" alt="Xem trước"
+                                 style="max-width: 100%; max-height: 200px; display: none; object-fit: contain;" class="rounded shadow-sm mb-2" />
+
+                            <div id="uploadText">
+                                <div style="font-size: 50px;">📷</div>
+                                <p class="fw-bold mb-1">Kéo ảnh từ máy tính vào đây</p>
+                                <p class="text-muted small">hoặc click để chọn</p>
+                            </div>
+                        </div>
+
+                        <input type="file" name="imageFile" id="imageFile" class="d-none" accept="image/*" onchange="previewImage(this)" />
+                    </div>
+                </div>
+
+                <hr class="my-4" />
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-success fw-bold py-2">💾 LƯU SẢN PHẨM</button>
+                    <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/addphoto.js"></script>

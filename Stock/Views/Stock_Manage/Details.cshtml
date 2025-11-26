@@ -1,0 +1,52 @@
+﻿@model Stock.Models.StockTransaction
+@{
+    ViewData["Title"] = "Chi tiết phiếu kho";
+}
+
+<div class="container mt-5 d-flex justify-content-center">
+    <div class="card shadow-lg border-0" style="width: 500px;">
+        <div class="card-header text-white text-center py-3 @(Model.ImportQuantity > 0 ? "bg-success" : "bg-danger")">
+            <h4 class="mb-0 fw-bold">@(Model.ImportQuantity > 0 ? "PHIẾU NHẬP KHO" : "PHIẾU XUẤT KHO")</h4>
+            <small>Mã phiếu: #@Model.Id</small>
+        </div>
+        <div class="card-body p-4">
+            <div class="text-center mb-4">
+                <h5 class="text-primary fw-bold">@Model.Product?.Name</h5>
+                <span class="badge bg-secondary">Mã: @Model.Product?.Code</span>
+            </div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>🕒 Thời gian:</span>
+                    <span class="fw-bold">@(Model.ImportQuantity > 0 ? Model.ImportDateTime.ToString("dd/MM/yyyy HH:mm") : Model.ExportDateTime?.ToString("dd/MM/yyyy HH:mm"))</span>
+                </li>
+
+                <li class="list-group-item d-flex justify-content-between bg-light">
+                    <span>📦 Số lượng:</span>
+                    <span class="fs-5 fw-bold @(Model.ImportQuantity > 0 ? "text-success" : "text-danger")">
+                        @(Model.ImportQuantity > 0 ? "+" + Model.ImportQuantity : "-" + Model.ExportQuantity) @Model.Unit
+                    </span>
+                </li>
+
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>💲 Đơn giá:</span>
+                    <span class="fw-bold">@(Model.ImportQuantity > 0 ? Model.ImportPrice.ToString("N0") : Model.ExportPrice?.ToString("N0")) VNĐ</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>📊 Tồn sau GD:</span>
+                    <span class="fw-bold">@Model.StockRemaining</span>
+                </li>
+
+                @if (!string.IsNullOrEmpty(Model.Note))
+                {
+                    <li class="list-group-item">
+                        <span class="fw-bold d-block">📝 Ghi chú:</span>
+                        <span class="text-muted">@Model.Note</span>
+                    </li>
+                }
+            </ul>
+            <div class="d-grid gap-2 mt-4">
+                <a asp-action="Index" class="btn btn-secondary fw-bold">← Quay lại</a>
+            </div>
+        </div>
+    </div>
+</div>

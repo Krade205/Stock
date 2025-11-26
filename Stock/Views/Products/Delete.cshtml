@@ -1,0 +1,24 @@
+﻿@model Stock.Models.Product
+@{
+    ViewData["Title"] = "Xóa sản phẩm";
+}
+
+<div class="container mt-5" style="max-width: 500px;">
+    <div class="card border-danger shadow">
+        <div class="card-header bg-danger text-white text-center fw-bold">
+            XÁC NHẬN XÓA
+        </div>
+        <div class="card-body text-center">
+            <h4 class="text-danger">Bạn có chắc muốn xóa?</h4>
+            <h5 class="fw-bold my-3">@Model.Name</h5>
+            <p>Mã: @Model.Code</p>
+            <p class="text-muted">Hành động này không thể hoàn tác!</p>
+
+            <form asp-action="Delete">
+                <input type="hidden" asp-for="Id" />
+                <button type="submit" class="btn btn-danger px-4">Xóa ngay</button>
+                <a asp-action="Index" class="btn btn-secondary px-4">Hủy</a>
+            </form>
+        </div>
+    </div>
+</div>

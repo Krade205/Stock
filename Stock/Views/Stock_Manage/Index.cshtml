@@ -1,0 +1,69 @@
+﻿@model Stock.Models.InventoryReportViewModel
+@{
+    ViewData["Title"] = "Quản lý kho";
+}
+
+<div class="container-fluid mt-3">
+    <div class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded shadow-sm border">
+        <h3 class="text-primary fw-bold m-0"><i class="bi bi-clock-history"></i> QUẢN LÝ KHO</h3>
+        <div>
+            <a asp-action="Report" class="btn btn-success fw-bold me-2 shadow-sm">
+                <span class="fs-5">+</span> Nhập/Xuất Thủ Công
+            </a>
+            <a asp-controller="Pos" asp-action="Index" class="btn btn-warning fw-bold text-dark shadow-sm">💰 Mở máy POS</a>
+        </div>
+    </div>
+
+    <div class="row g-4 text-center mb-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-success shadow h-100 border-0">
+                <div class="card-body">
+                    <h1 class="display-4 fw-bold">@Model.TotalImport</h1>
+                    <p>TỔNG NHẬP</p>
+                </div>
+                <div class="card-footer"><a asp-action="ImportHistory" class="btn btn-light btn-sm text-success fw-bold">Chi tiết →</a></div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-danger shadow h-100 border-0">
+                <div class="card-body">
+                    <h1 class="display-4 fw-bold">@Model.TotalExport</h1>
+                    <p>TỔNG XUẤT</p>
+                </div>
+                <div class="card-footer"><a asp-action="ExportHistory" class="btn btn-light btn-sm text-danger fw-bold">Chi tiết →</a></div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-dark bg-warning shadow h-100 border-0">
+                <div class="card-body">
+                    <h1 class="display-4 fw-bold">@Model.CurrentStock</h1>
+                    <p>TỒN KHO HIỆN TẠI</p>
+                </div>
+                <a asp-controller="Stock_Manage" asp-action="InventoryStatus" class="btn btn-light btn-sm text-danger fw-bol">
+                    📊 Xem Bảng Tổng Hợp Nhập/Xuất →
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="p-4 border rounded bg-white shadow-sm h-100">
+                <h5 class="fw-bold text-secondary">📌 Thao tác nhanh</h5>
+                <ul class="list-group list-group-flush mt-3">
+                    <li class="list-group-item border-0 ps-0"><a asp-action="ReportImp" class="text-decoration-none fw-bold text-success">➕ Nhập hàng mới</a></li>
+                    <li class="list-group-item border-0 ps-0"><a asp-action="ReportExp" class="text-decoration-none fw-bold text-danger">➖ Xuất hủy hàng</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="p-4 border rounded bg-white shadow-sm h-100">
+                <h5 class="fw-bold text-secondary">📈 Báo cáo</h5>
+                <div class="d-flex gap-2 mt-3">
+                    <a asp-action="ImportHistory" class="btn btn-outline-success w-50 fw-bold">Lịch sử Nhập</a>
+                    <a asp-action="ExportHistory" class="btn btn-outline-danger w-50 fw-bold">Lịch sử Xuất</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
