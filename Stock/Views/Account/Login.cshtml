@@ -1,68 +1,135 @@
-﻿@{
+﻿@model Stock.Models.RegisterViewModel
+@{
     Layout = null;
 }
 
 <!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="utf-8" />
-    <title>Đăng Nhập</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <style>
-        body {
-            background: #e9ecef;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Login/Signup Form</title>
+        <link rel="stylesheet" href="SignUp_LogIn_Form.css">
+        <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    </head>
 
-        .login-card {
-            background: white;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 400px;
-        }
+    <link href="~/css/signup_login_form.css" rel="stylesheet" />
 
-        .form-control {
-            border-radius: 8px;
-            padding: 10px;
-        }
-    </style>
-</head>
-<body>
-    <div class="login-card">
-        <h3 class="text-center text-primary mb-4">ĐĂNG NHẬP</h3>
+    <body>
+        <div class="container">
 
-        @if (TempData["Success"] != null)
-        {
-            <div class="alert alert-success text-center">@TempData["Success"]</div>
-        }
-
-        @if (ViewBag.Error != null)
-        {
-            <div class="alert alert-danger text-center">@ViewBag.Error</div>
-        }
-
-        <form action="/Account/Login" method="post">
-            <div class="mb-3">
-                <label class="form-label">Tài khoản</label>
-                <input type="text" name="username" class="form-control" required />
+            @if (ViewBag.RegisterSuccess != null)
+            {
+                <div style="
+                    text-align: center;
+                    color: #28a745; /* Màu xanh lá cây cho thành công */
+                    background-color: #d4edda; /* Nền nhạt */
+                    border: 1px solid #c3e6cb;
+                    padding: 10px;
+                    border-radius: 5px;
+                    margin-bottom: 20px;
+                    font-weight: bold;
+                    /* Đảm bảo div này không bị ẩn bởi CSS của form */
+                    position: absolute;
+                    top: 5%;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    width: 80%;
+                    z-index: 100;
+                            ">
+                    @ViewBag.RegisterSuccess
+                </div>
+            }
+            <div class="form-box login">
+                <form asp-controller="Account" asp-action="Login" method="post">
+                    <h1>Login</h1>
+                    @if (ViewBag.LoginError != null)
+                    {
+                        <p style="color: red; text-align: center;">@ViewBag.LoginError</p>
+                    }
+                    <div class="input-box">
+                        <input type="text" name="Username" placeholder="Username" required />
+                        <i class='bx bxs-user'></i>
+                    </div>
+                    <div class="input-box">
+                        <input type="password" name="Password" placeholder="Password" required />
+                        <i class='bx bxs-lock-alt'></i>
+                    </div>
+                    <div class="forgot-link">
+                        <a href="#">Forgot Password?</a>
+                    </div>
+                    <button type="submit" class="btn">Login</button>
+                    <p>or login with social platforms</p>
+                    <div class="social-icons">
+                        <a href="#"><i class='bx bxl-google'></i></a>
+                        <a href="#"><i class='bx bxl-facebook'></i></a>
+                        <a href="#"><i class='bx bxl-github'></i></a>
+                        <a href="#"><i class='bx bxl-linkedin'></i></a>
+                    </div>
+                </form>
             </div>
-            <div class="mb-3">
-                <label class="form-label">Mật khẩu</label>
-                <input type="password" name="password" class="form-control" required />
+
+            <div class="form-box register">
+                <form asp-controller="Account" asp-action="Register" method="post">
+                    <h1>Registration</h1>
+
+                    <div asp-validation-summary="ModelOnly" class="text-danger" style="color: red; margin-bottom: 10px;"></div>
+
+                    <div class="input-box">
+                        <input type="text" asp-for="FullName" placeholder="FullName" required />
+                        <i class='bx bxs-envelope'></i>
+                        <span asp-validation-for="FullName" class="text-danger" style="color: red;"></span>
+                    </div>
+
+                    <div class="input-box">
+                        <input type="text" asp-for="Username" placeholder="Username" required />
+                        <i class='bx bxs-user'></i>
+                        <span asp-validation-for="Username" class="text-danger" style="color: red;"></span>
+                    </div>
+
+                    <div class="input-box">
+                        <input type="password" asp-for="Password" placeholder="Password" required />
+                        <i class='bx bxs-lock-alt'></i>
+                        <span asp-validation-for="Password" class="text-danger" style="color: red;"></span>
+                    </div>
+
+                    <div class="input-box">
+                        <input type="password" asp-for="ConfirmPassword" placeholder="Confirm Password" required />
+                        <i class='bx bxs-lock-alt'></i>
+                        <span asp-validation-for="ConfirmPassword" class="text-danger" style="color: red;"></span>
+                    </div>
+
+                    <button type="submit" class="btn">Register</button>
+                    <p>or register with social platforms</p>
+                    <div class="social-icons">
+                        <a href="#"><i class='bx bxl-google'></i></a>
+                        <a href="#"><i class='bx bxl-facebook'></i></a>
+                        <a href="#"><i class='bx bxl-github'></i></a>
+                        <a href="#"><i class='bx bxl-linkedin'></i></a>
+                    </div>
+                </form>
             </div>
 
-            <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Đăng nhập</button>
+            <div class="toggle-box">
+                <div class="toggle-panel toggle-left">
+                    <h1>Hello, Welcome!</h1>
+                    <p>Don't have an account?</p>
+                    <button class="btn register-btn">Register</button>
+                </div>
 
-            <div class="text-center mt-4 pt-3 border-top">
-                <span class="text-muted">Chưa có tài khoản?</span><br />
-                <a href="/Account/Register" class="btn btn-outline-success mt-2 w-100">Đăng ký tài khoản mới</a>
+                <div class="toggle-panel toggle-right">
+                    <h1>Welcome Back!</h1>
+                    <p>Already have an account?</p>
+                    <button class="btn login-btn">Login</button>
+                </div>
             </div>
-        </form>
-    </div>
-</body>
+        </div>
+
+        <script src="~/lib/jquery/dist/jquery.min.js"></script>
+        <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+        <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
+
+        <script src="~/js/signup_login_form.js"></script>
+    </body>
 </html>

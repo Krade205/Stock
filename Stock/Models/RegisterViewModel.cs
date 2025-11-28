@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Stock.Models // <--- QUAN TRỌNG: Phải là Stock.Models
+namespace Stock.Models 
 {
     public class RegisterViewModel
     {
