@@ -3,72 +3,146 @@
     ViewData["Title"] = "Thêm sản phẩm mới";
 }
 
-<div class="container mt-4" style="max-width: 800px;">
-    <div class="card shadow border-0">
+<div class="container mt-4" style="max-width: 900px;">
+    <div class="card shadow-lg border-0 rounded-3">
         <div class="card-header bg-primary text-white text-center py-3">
-            <h4 class="fw-bold mb-0">THÊM SẢN PHẨM MỚI</h4>
+            <h4 class="fw-bold mb-0 text-uppercase">✨ THÊM SẢN PHẨM / CẬP NHẬT TỒN</h4>
         </div>
-        <div class="card-body p-4">
+
+        <div class="card-body p-5">
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger fw-bold">@TempData["Error"]</div>
+            }
 
             <form asp-action="Create" enctype="multipart/form-data" id="createForm">
+                <div class="row g-5">
 
-                <div class="row">
                     <div class="col-md-7">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Mã sản phẩm <span class="text-danger">*</span></label>
-                            <input asp-for="Code" class="form-control" placeholder="VD: SB001" required />
-                            <span asp-validation-for="Code" class="text-danger small"></span>
-                        </div>
+                        <h5 class="text-primary border-bottom pb-2 mb-3">📝 Thông tin chi tiết</h5>
+
                         <div class="mb-3">
                             <label class="form-label fw-bold">Tên sản phẩm <span class="text-danger">*</span></label>
-                            <input asp-for="Name" class="form-control" required />
+
+                            <select asp-for="Name" class="form-select form-select-lg border-primary" id="productSelect" onchange="fillData(this)">
+                                <option value="">-- Chọn sản phẩm từ kho --</option>
+
+                                @if (ViewBag.ExistingProducts != null)
+                                {
+                                    foreach (var item in ViewBag.ExistingProducts)
+                                    {
+                                        <option value="@item.Name"
+                                                data-code="@item.Code"
+                                                data-price="@item.Price"
+                                                data-qty="@item.Quantity"
+                                                data-desc="@item.Description">
+                                            @item.Name
+                                        </option>
+                                    }
+                                }
+                            </select>
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                            <small class="text-muted fst-italic">Chọn để tự động điền Mã, Giá và Tồn kho hiện tại.</small>
                         </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Mã sản phẩm <span class="text-danger">*</span></label>
+                            <input asp-for="Code" id="inputCode" class="form-control" placeholder="VD: SB001" required />
+                            <span asp-validation-for="Code" class="text-danger small"></span>
+                        </div>
+
                         <div class="row">
-                            <div class="col-6 mb-3">
-                                <label class="form-label fw-bold">Giá bán</label>
-                                <input asp-for="Price" type="number" class="form-control" />
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Giá bán (VNĐ)</label>
+                                <input asp-for="Price" id="inputPrice" type="number" class="form-control" placeholder="0" />
                             </div>
-                            <div class="col-6 mb-3">
+                            <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Số lượng</label>
-                                <input asp-for="Quantity" type="number" class="form-control" />
+                                <input asp-for="Quantity" id="inputQty" type="number" class="form-control fw-bold text-success" value="0" />
                             </div>
                         </div>
+
                         <div class="mb-3">
                             <label class="form-label fw-bold">Mô tả</label>
-                            <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                            <textarea asp-for="Description" id="inputDesc" class="form-control" rows="4"></textarea>
                         </div>
                     </div>
 
-                    <div class="col-md-5">
-                        <label class="form-label fw-bold">Hình ảnh</label>
+                    <div class="col-md-5 d-flex flex-column">
+                        <h5 class="text-primary border-bottom pb-2 mb-3">📷 Hình ảnh</h5>
 
-                        <div id="drop-zone" class="upload-box text-center p-3 border border-2 border-dashed rounded bg-light d-flex flex-column justify-content-center align-items-center"
+                        <div id="drop-zone" class="upload-box flex-grow-1 text-center p-3 border border-2 border-primary border-dashed rounded bg-light d-flex flex-column justify-content-center align-items-center shadow-sm"
                              onclick="document.getElementById('imageFile').click();"
-                             style="cursor: pointer; min-height: 250px; transition: 0.3s;">
+                             style="cursor: pointer; min-height: 300px; transition: 0.3s;">
 
                             <img id="previewImg" src="#" alt="Xem trước"
-                                 style="max-width: 100%; max-height: 200px; display: none; object-fit: contain;" class="rounded shadow-sm mb-2" />
+                                 style="max-width: 100%; max-height: 250px; display: none; object-fit: contain;" class="rounded shadow mb-3" />
 
                             <div id="uploadText">
                                 <div style="font-size: 50px;">📷</div>
                                 <p class="fw-bold mb-1">Kéo ảnh từ máy tính vào đây</p>
                                 <p class="text-muted small">hoặc click để chọn</p>
                             </div>
-                        </div>
 
+                        </div>
                         <input type="file" name="imageFile" id="imageFile" class="d-none" accept="image/*" onchange="previewImage(this)" />
                     </div>
                 </div>
 
                 <hr class="my-4" />
 
-                <div class="d-grid gap-2">
-                    <button type="submit" class="btn btn-success fw-bold py-2">💾 LƯU SẢN PHẨM</button>
-                    <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a asp-action="Index" class="btn btn-outline-secondary px-4 fw-bold">Hủy bỏ</a>
+                    <button type="submit" class="btn btn-success px-5 fw-bold shadow">💾 LƯU / CẬP NHẬT</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<script src="~/js/addphoto.js"></script>
+<script>
+    function fillData(selectObject) {
+        // 1. Lấy option đang được chọn
+        var selectedOption = selectObject.options[selectObject.selectedIndex];
+
+        // 2. Lấy dữ liệu từ data-attributes
+        var code = selectedOption.getAttribute('data-code');
+        var price = selectedOption.getAttribute('data-price');
+        var qty = selectedOption.getAttribute('data-qty');
+        var desc = selectedOption.getAttribute('data-desc');
+
+        // 3. Điền vào các ô input tương ứng
+        if (code) document.getElementById('inputCode').value = code;
+        if (price) document.getElementById('inputPrice').value = price;
+        if (qty) document.getElementById('inputQty').value = qty;
+        if (desc) document.getElementById('inputDesc').value = desc;
+    }
+
+    // --- Phần xử lý ảnh giữ nguyên ---
+    function showPreview(file) {
+        if (file) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                var img = document.getElementById('previewImg');
+                img.src = e.target.result;
+                img.style.display = 'block';
+                document.getElementById('uploadText').style.display = 'none';
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+    function previewImage(input) {
+        if (input.files && input.files[0]) showPreview(input.files[0]);
+    }
+    var dropZone = document.getElementById('drop-zone');
+    var fileInput = document.getElementById('imageFile');
+
+    dropZone.addEventListener('dragover', function (e) { e.preventDefault(); this.style.backgroundColor = '#e2e6ea'; });
+    dropZone.addEventListener('dragleave', function (e) { e.preventDefault(); this.style.backgroundColor = '#f8f9fa'; });
+    dropZone.addEventListener('drop', function (e) {
+        e.preventDefault(); this.style.backgroundColor = '#f8f9fa';
+        var droppedFiles = e.dataTransfer.files;
+        if (droppedFiles.length > 0) { fileInput.files = droppedFiles; showPreview(droppedFiles[0]); }
+    });
+</script>

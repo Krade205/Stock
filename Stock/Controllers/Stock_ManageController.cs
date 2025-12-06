@@ -7,319 +7,353 @@ using Stock.Models;
 
 namespace Stock.Controllers
 {
-    [Authorize(Roles = "Admin")] // Chỉ Admin mới được vào kho
-    public class Stock_ManageController : Controller
-    {
-        private readonly ApplicationDbContext _context;
+	[Authorize(Roles = "Admin")] // Chỉ Admin mới được vào kho
+	public class Stock_ManageController : Controller
+	{
+		private readonly ApplicationDbContext _context;
 
-        public Stock_ManageController(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+		public Stock_ManageController(ApplicationDbContext context)
+		{
+			_context = context;
+		}
 
-        // ==================================================
-        // 1. TRANG CHỦ DASHBOARD (THỐNG KÊ)
-        // ==================================================
-        public async Task<IActionResult> Index()
-        {
-            // 1. Tính Tổng Nhập
-            var totalImport = await _context.StockTransactions.SumAsync(t => t.ImportQuantity);
-            var totalImportVal = await _context.StockTransactions.SumAsync(t => t.ImportQuantity * t.ImportPrice);
+		// ==================================================
+		// 1. TRANG CHỦ DASHBOARD
+		// ==================================================
+		public async Task<IActionResult> Index()
+		{
+			// Tính toán số liệu thống kê
+			var totalImport = await _context.StockTransactions.SumAsync(t => t.ImportQuantity);
+			var totalImportVal = await _context.StockTransactions.SumAsync(t => t.ImportQuantity * t.ImportPrice);
+			var totalExport = await _context.StockTransactions.SumAsync(t => t.ExportQuantity ?? 0);
+			var totalExportVal = await _context.StockTransactions.SumAsync(t => (t.ExportQuantity ?? 0) * (t.ExportPrice ?? 0));
+			var totalStock = await _context.Products.SumAsync(p => p.Quantity);
+			var products = await _context.Products.ToListAsync();
 
-            // 2. Tính Tổng Xuất
-            var totalExport = await _context.StockTransactions.SumAsync(t => t.ExportQuantity ?? 0);
-            var totalExportVal = await _context.StockTransactions.SumAsync(t => (t.ExportQuantity ?? 0) * (t.ExportPrice ?? 0));
+			var model = new InventoryReportViewModel
+			{
+				TotalImport = totalImport,
+				TotalExport = totalExport,
+				CurrentStock = totalStock,
+				TotalImportValue = totalImportVal,
+				TotalExportValue = totalExportVal,
+				ProductList = products
+			};
 
-            // 3. Tính Tổng Tồn kho thực tế (Lấy từ bảng Products)
-            var totalStock = await _context.Products.SumAsync(p => p.Quantity);
+			return View(model);
+		}
 
-            // 4. Đưa dữ liệu vào Model
-            var model = new InventoryReportViewModel
-            {
-                TotalImport = totalImport,
-                TotalExport = totalExport,
-                CurrentStock = totalStock,
-                TotalImportValue = totalImportVal,
-                TotalExportValue = totalExportVal
-            };
+		// ===============================================
+		// 2. LỊCH SỬ NHẬP KHO
+		// ===============================================
+		public async Task<IActionResult> ImportHistory()
+		{
+			var list = await _context.StockTransactions
+				.Include(t => t.Product)
+				.Where(t => t.ImportQuantity > 0)
+				.OrderByDescending(t => t.ImportDateTime)
+				.ToListAsync();
+			return View(list);
+		}
 
-            return View(model);
-        }
+		// ===============================================
+		// 3. LỊCH SỬ XUẤT KHO
+		// ===============================================
+		public async Task<IActionResult> ExportHistory()
+		{
+			var list = await _context.StockTransactions
+				.Include(t => t.Product)
+				.Where(t => t.ExportQuantity > 0)
+				.OrderByDescending(t => t.ExportDateTime)
+				.ToListAsync();
+			return View(list);
+		}
 
-        // ===============================================
-        // 2. LỊCH SỬ NHẬP KHO
-        // ===============================================
-        public async Task<IActionResult> ImportHistory()
-        {
-            var list = await _context.StockTransactions
-                .Include(t => t.Product)
-                .Where(t => t.ImportQuantity > 0) // Chỉ lấy phiếu NHẬP
-                .OrderByDescending(t => t.ImportDateTime)
-                .ToListAsync();
-            return View(list);
-        }
+		// ===============================================
+		// 4. TẠO PHIẾU NHẬP KHO (ReportImp)
+		// ===============================================
+		[HttpGet]
+		public IActionResult ReportImp()
+		{
+			var productList = _context.Products
+				.Select(p => new { Id = p.Id, DisplayText = $"[{p.Code}] - {p.Name}" })
+				.ToList();
 
-        // ===============================================
-        // 3. LỊCH SỬ XUẤT KHO
-        // ===============================================
-        public async Task<IActionResult> ExportHistory()
-        {
-            var list = await _context.StockTransactions
-                .Include(t => t.Product)
-                .Where(t => t.ExportQuantity > 0) // Chỉ lấy phiếu XUẤT
-                .OrderByDescending(t => t.ExportDateTime)
-                .ToListAsync();
-            return View(list);
-        }
+			ViewData["ProductId"] = new SelectList(productList, "Id", "DisplayText");
+			return View();
+		}
 
-        // ===============================================
-        // 4. TẠO PHIẾU NHẬP KHO
-        // ===============================================
-        [HttpGet]
-        public IActionResult ReportImp()
-        {
-            ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Name");
-            return View();
-        }
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> ReportImp(StockTransaction model, string productCode, string productName)
+		{
+			// 1. Tìm xem mã này đã có chưa?
+			var product = await _context.Products.FirstOrDefaultAsync(p => p.Code == productCode);
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ReportImp(StockTransaction model)
-        {
-            ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Name", model.ProductId);
+			if (product == null)
+			{
+				// --- TRƯỜNG HỢP: SẢN PHẨM MỚI ---
+				// Vì chưa có, bắt buộc phải có Tên để tạo mới
+				if (string.IsNullOrEmpty(productName))
+				{
+					TempData["Error"] = "❌ Mã này mới, vui lòng nhập Tên sản phẩm!";
+					ViewBag.EnteredCode = productCode;
+					return View(model);
+				}
 
-            if (ModelState.IsValid)
-            {
-                var product = await _context.Products.FindAsync(model.ProductId);
-                if (product == null)
-                {
-                    TempData["Error"] = "❌ Lỗi: Vui lòng chọn sản phẩm trong danh sách!";
-                    return View("Import", model);
-                }
+				// Tạo mới sản phẩm
+				product = new Product
+				{
+					Code = productCode,
+					Name = productName,   // Lấy tên bạn vừa nhập
+					Quantity = 0,         // Tồn đầu = 0
+					Price = 0,            // Giá bán tạm = 0
+					ImageUrl = "anh.png",
+					Description = "Tạo nhanh từ phiếu nhập kho"
+				};
+				_context.Products.Add(product);
+				await _context.SaveChangesAsync();
+			}
+			else
+			{
+				// --- TRƯỜNG HỢP: SẢN PHẨM CŨ ---
+				// Nếu muốn cập nhật tên mới cho sản phẩm cũ thì bỏ comment dòng dưới:
+				// product.Name = productName; 
+			}
 
-                try
-                {
-                    // --- LOGIC NHẬP KHO ---
-                    if (model.ImportQuantity > 0)
-                    {
-                        product.Quantity += model.ImportQuantity;
+			// Gán ID sản phẩm (dù mới hay cũ) vào phiếu
+			model.ProductId = product.Id;
 
-                        // Xóa thông tin xuất
-                        model.ExportQuantity = 0;
-                        model.ExportPrice = 0;
-                        model.ExportDateTime = null;
+			// Bỏ qua kiểm tra ProductId
+			ModelState.Remove("ProductId");
+			ModelState.Remove("Product");
 
-                        model.StockRemaining = product.Quantity;
+			if (ModelState.IsValid)
+			{
+				try
+				{
+					if (model.ImportQuantity <= 0)
+					{
+						TempData["Error"] = "⚠️ Số lượng nhập phải lớn hơn 0!";
+						ViewBag.EnteredCode = productCode;
+						ViewBag.EnteredName = productName;
+						return View(model);
+					}
 
-                        _context.Add(model);
-                        _context.Products.Update(product);
-                        await _context.SaveChangesAsync();
+					// Cộng kho
+					product.Quantity += model.ImportQuantity;
 
-                        TempData["Success"] = $"✅ Đã nhập thêm {model.ImportQuantity} sản phẩm '{product.Name}'.";
-                        return RedirectToAction(nameof(Index));
-                    }
-                    else
-                    {
-                        TempData["Error"] = "⚠️ Vui lòng nhập số lượng lớn hơn 0!";
-                        return View("Import", model);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    TempData["Error"] = "Lỗi hệ thống: " + ex.Message;
-                    return View("Import", model);
-                }
-            }
+					// Reset dữ liệu xuất
+					model.ExportQuantity = 0;
+					model.ExportPrice = 0;
+					model.ExportDateTime = null;
 
-            TempData["Error"] = "Dữ liệu nhập vào chưa hợp lệ.";
-            return View("Import", model);
-        }
+					model.StockRemaining = product.Quantity;
 
-        // ===============================================
-        // 5. TẠO PHIẾU XUẤT KHO
-        // ===============================================
-        [HttpGet]
-        public IActionResult ReportExp()
-        {
-            ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Name");
-            return View();
-        }
+					_context.Add(model);
+					_context.Products.Update(product);
+					await _context.SaveChangesAsync();
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ReportExp(StockTransaction model)
-        {
-            ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Name", model.ProductId);
+					TempData["Success"] = $"✅ Đã nhập thêm {model.ImportQuantity} {model.Unit} cho '{product.Name}'.";
+					return RedirectToAction(nameof(Index));
+				}
+				catch (Exception ex)
+				{
+					TempData["Error"] = "Lỗi hệ thống: " + ex.Message;
+				}
+			}
+			else
+			{
+				TempData["Error"] = "Dữ liệu không hợp lệ.";
+			}
 
-            if (ModelState.IsValid)
-            {
-                var product = await _context.Products.FindAsync(model.ProductId);
-                if (product == null)
-                {
-                    TempData["Error"] = "❌ Lỗi: Vui lòng chọn sản phẩm trong danh sách!";
-                    return View("Export", model);
-                }
+			// Trả lại dữ liệu nếu lỗi
+			ViewBag.EnteredCode = productCode;
+			ViewBag.EnteredName = productName;
+			return View(model);
+		}
 
-                try
-                {
-                    // --- LOGIC XUẤT KHO ---
-                    if (model.ExportQuantity > 0)
-                    {
-                        if (product.Quantity < model.ExportQuantity)
-                        {
-                            TempData["Error"] = $"⚠️ Xuất thất bại! Kho chỉ còn {product.Quantity}, không đủ xuất {model.ExportQuantity}.";
-                            return View("Export", model);
-                        }
+		// ===============================================
+		// 5. TẠO PHIẾU XUẤT KHO (ReportExp)
+		// ===============================================
+		[HttpGet]
+		public IActionResult ReportExp()
+		{
+			var productList = _context.Products
+				.Select(p => new { Id = p.Id, DisplayText = $"[{p.Code}] - {p.Name}" })
+				.ToList();
 
-                        product.Quantity -= (int)model.ExportQuantity;
+			ViewData["ProductId"] = new SelectList(productList, "Id", "DisplayText");
+			return View();
+		}
 
-                        if (model.ExportDateTime == null) model.ExportDateTime = DateTime.Now;
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> ReportExp(StockTransaction model)
+		{
+			var productList = _context.Products
+				.Select(p => new { Id = p.Id, DisplayText = $"[{p.Code}] - {p.Name}" })
+				.ToList();
+			ViewData["ProductId"] = new SelectList(productList, "Id", "DisplayText", model.ProductId);
 
-                        model.ImportQuantity = 0;
-                        model.ImportPrice = 0;
+			ModelState.Remove("Product");
 
-                        model.StockRemaining = product.Quantity;
+			if (ModelState.IsValid)
+			{
+				var product = await _context.Products.FindAsync(model.ProductId);
+				if (product == null)
+				{
+					TempData["Error"] = "❌ Lỗi: Vui lòng chọn sản phẩm!";
+					return View(model);
+				}
 
-                        _context.Add(model);
-                        _context.Products.Update(product);
-                        await _context.SaveChangesAsync();
+				try
+				{
+					// Kiểm tra số lượng xuất hợp lệ
+					if (model.ExportQuantity <= 0)
+					{
+						TempData["Error"] = "⚠️ Số lượng xuất phải lớn hơn 0!";
+						return View(model);
+					}
 
-                        TempData["Success"] = $"✅ Đã xuất kho {model.ExportQuantity} sản phẩm '{product.Name}'.";
-                        return RedirectToAction(nameof(Index));
-                    }
-                    else
-                    {
-                        TempData["Error"] = "⚠️ Vui lòng nhập số lượng lớn hơn 0!";
-                        return View("Export", model);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    TempData["Error"] = "Lỗi hệ thống: " + ex.Message;
-                    return View("Export", model);
-                }
-            }
+					// Kiểm tra tồn kho có đủ không
+					if (product.Quantity < model.ExportQuantity)
+					{
+						TempData["Error"] = $"⚠️ Xuất thất bại! Kho chỉ còn {product.Quantity}, không đủ xuất {model.ExportQuantity}.";
+						return View(model);
+					}
 
-            TempData["Error"] = "Dữ liệu nhập vào chưa hợp lệ.";
-            return View("Export", model);
-        }
+					// --- LOGIC XUẤT KHO ---
+					product.Quantity -= (int)model.ExportQuantity; // Trừ kho
 
-        // ===============================================
-        // 6. XÓA GIAO DỊCH (CÓ THÔNG BÁO)
-        // ===============================================
-        [HttpGet]
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null) return NotFound();
-            var transaction = await _context.StockTransactions
-                .Include(t => t.Product)
-                .FirstOrDefaultAsync(t => t.Id == id);
-            if (transaction == null) return NotFound();
-            return View(transaction);
-        }
+					// Tự động lấy giờ hiện tại nếu chưa nhập
+					if (model.ExportDateTime == null) model.ExportDateTime = DateTime.Now;
 
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var transaction = await _context.StockTransactions.FindAsync(id);
-            if (transaction != null)
-            {
-                var product = await _context.Products.FindAsync(transaction.ProductId);
-                if (product != null)
-                {
-                    // HOÀN TRẢ KHO
-                    if (transaction.ImportQuantity > 0) // Xóa phiếu nhập -> Trừ lại kho
-                    {
-                        if (product.Quantity >= transaction.ImportQuantity)
-                            product.Quantity -= transaction.ImportQuantity;
-                        else
-                            product.Quantity = 0;
-                    }
+					// Xóa dữ liệu thừa của nhập kho
+					model.ImportQuantity = 0;
+					model.ImportPrice = 0;
 
-                    if (transaction.ExportQuantity > 0) // Xóa phiếu xuất -> Cộng lại kho
-                    {
-                        product.Quantity += (int)transaction.ExportQuantity;
-                    }
+					// Lưu tồn kho lúc này
+					model.StockRemaining = product.Quantity;
 
-                    _context.Products.Update(product);
-                }
+					_context.Add(model);
+					_context.Products.Update(product);
+					await _context.SaveChangesAsync();
 
-                _context.StockTransactions.Remove(transaction);
-                await _context.SaveChangesAsync();
+					TempData["Success"] = $"✅ Đã xuất kho {model.ExportQuantity} sản phẩm '{product.Name}'.";
+					return RedirectToAction(nameof(Index));
+				}
+				catch (Exception ex)
+				{
+					TempData["Error"] = "Lỗi hệ thống: " + ex.Message;
+					return View(model);
+				}
+			}
 
-                // --- THÔNG BÁO XÓA THÀNH CÔNG ---
-                TempData["Success"] = "🗑️ Đã xóa phiếu giao dịch và hoàn trả số lượng kho!";
-            }
-            return RedirectToAction(nameof(Index));
-        }
+			TempData["Error"] = "Dữ liệu nhập vào chưa hợp lệ.";
+			return View(model);
+		}
 
-        // Chi tiết giao dịch (Nếu cần xem lẻ từng cái)
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null) return NotFound();
-            var transaction = await _context.StockTransactions
-                .Include(t => t.Product)
-                .FirstOrDefaultAsync(t => t.Id == id);
-            if (transaction == null) return NotFound();
-            return View(transaction);
-        }
+		// ===============================================
+		// 6. XÓA GIAO DỊCH (HOÀN TRẢ LẠI KHO)
+		// ===============================================
+		[HttpGet]
+		public async Task<IActionResult> Delete(int? id)
+		{
+			if (id == null) return NotFound();
+			var transaction = await _context.StockTransactions
+				.Include(t => t.Product)
+				.FirstOrDefaultAsync(t => t.Id == id);
+			if (transaction == null) return NotFound();
+			return View(transaction);
+		}
 
-        public async Task<IActionResult> InventoryStatus()
-        {
-            // 1. Lấy tất cả sản phẩm
-            var products = await _context.Products.ToListAsync();
+		[HttpPost, ActionName("Delete")]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> DeleteConfirmed(int id)
+		{
+			var transaction = await _context.StockTransactions.FindAsync(id);
+			if (transaction != null)
+			{
+				var product = await _context.Products.FindAsync(transaction.ProductId);
+				if (product != null)
+				{
+					// HOÀN TRẢ KHO (Reverse Logic)
+					if (transaction.ImportQuantity > 0) // Xóa phiếu NHẬP -> Phải TRỪ lại kho
+					{
+						if (product.Quantity >= transaction.ImportQuantity)
+							product.Quantity -= transaction.ImportQuantity;
+						else
+							product.Quantity = 0;
+					}
 
-            // 2. Lấy tất cả lịch sử giao dịch
-            var transactions = await _context.StockTransactions.ToListAsync();
+					if (transaction.ExportQuantity > 0) // Xóa phiếu XUẤT -> Phải CỘNG lại kho
+					{
+						product.Quantity += (int)transaction.ExportQuantity;
+					}
 
-            // 3. Tạo danh sách báo cáo
-            var reportList = new List<InventoryStatusViewModel>();
+					_context.Products.Update(product);
+				}
 
-            foreach (var p in products)
-            {
-                // Lọc ra các giao dịch của sản phẩm này
-                var pTrans = transactions.Where(t => t.ProductId == p.Id).ToList();
+				_context.StockTransactions.Remove(transaction);
+				await _context.SaveChangesAsync();
 
-                reportList.Add(new InventoryStatusViewModel
-                {
-                    ProductId = p.Id,
-                    ProductCode = p.Code,
-                    ProductName = p.Name,
-                    ImageUrl = p.ImageUrl,
-                    CurrentStock = p.Quantity, // Tồn kho hiện tại
+				TempData["Success"] = "🗑️ Đã xóa phiếu giao dịch và hoàn trả số lượng kho!";
+			}
+			// Quay lại trang chi tiết của sản phẩm đó (hoặc trang Index nếu muốn)
+			return RedirectToAction(nameof(Index));
+		}
 
-                    // Cộng dồn lịch sử để ra Tổng Nhập / Tổng Xuất
-                    TotalImport = pTrans.Sum(t => t.ImportQuantity),
-                    TotalExport = pTrans.Sum(t => t.ExportQuantity ?? 0)
-                });
-            }
+		// ===============================================
+		// 7. CHI TIẾT TỒN KHO (CỦA 1 SẢN PHẨM)
+		// ===============================================
+		public async Task<IActionResult> InventoryDetails(int id)
+		{
+			var product = await _context.Products.FindAsync(id);
+			if (product == null) return NotFound();
 
-            return View(reportList);
-        }
+			var transactions = await _context.StockTransactions
+				.Where(t => t.ProductId == id)
+				.OrderByDescending(t => t.ImportDateTime)
+				.ToListAsync();
 
+			var model = new ProductInventoryViewModel
+			{
+				Product = product,
+				TotalImport = transactions.Sum(t => t.ImportQuantity),
+				TotalExport = transactions.Sum(t => t.ExportQuantity ?? 0),
+				CurrentStock = product.Quantity,
+				Transactions = transactions
+			};
 
-        public async Task<IActionResult> InventoryDetails(int id)
-        {
-            var product = await _context.Products.FindAsync(id);
-            if (product == null) return NotFound();
+			return View(model);
+		}
 
-            var transactions = await _context.StockTransactions
-                .Where(t => t.ProductId == id)
-                .OrderByDescending(t => t.ImportDateTime)
-                .ToListAsync();
+		// ===============================================
+		// 8. BÁO CÁO TỔNG HỢP (DANH SÁCH TRẠNG THÁI)
+		// ===============================================
+		public async Task<IActionResult> InventoryStatus()
+		{
+			var products = await _context.Products.ToListAsync();
+			var transactions = await _context.StockTransactions.ToListAsync();
 
-            var model = new ProductInventoryViewModel
-            {
-                Product = product,
-                TotalImport = transactions.Sum(t => t.ImportQuantity),
-                TotalExport = transactions.Sum(t => t.ExportQuantity ?? 0),
-                CurrentStock = product.Quantity,
-                Transactions = transactions
-            };
+			var reportList = new List<InventoryStatusViewModel>();
 
-            return View(model);
-        }
-
-    }
+			foreach (var p in products)
+			{
+				var pTrans = transactions.Where(t => t.ProductId == p.Id).ToList();
+				reportList.Add(new InventoryStatusViewModel
+				{
+					ProductId = p.Id,
+					ProductCode = p.Code,
+					ProductName = p.Name,
+					ImageUrl = p.ImageUrl,
+					CurrentStock = p.Quantity,
+					TotalImport = pTrans.Sum(t => t.ImportQuantity),
+					TotalExport = pTrans.Sum(t => t.ExportQuantity ?? 0)
+				});
+			}
+			return View(reportList);
+		}
+	}
 }
