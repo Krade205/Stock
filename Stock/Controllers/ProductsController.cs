@@ -1,12 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Hosting; // <--- MỚI: Sửa lỗi gạch chân của bạn
-using Microsoft.AspNetCore.Http;    // <--- MỚI: Để xử lý file
+using Microsoft.AspNetCore.Hosting; 
+using Microsoft.AspNetCore.Http;   
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Stock.Data;
 using Stock.Models;
 using Stock.Services;
-using System.IO;                    // <--- MỚI: Để lưu file ảnh
+using System.IO;                    
 
 namespace Stock.Controllers
 {
@@ -14,7 +14,7 @@ namespace Stock.Controllers
 	{
 		private readonly ApplicationDbContext _context;
 		private readonly QRService _qrService;
-		private readonly IWebHostEnvironment _webHostEnvironment; // Hết lỗi gạch chân
+		private readonly IWebHostEnvironment _webHostEnvironment; 
 
 		public ProductsController(ApplicationDbContext context, QRService qrService, IWebHostEnvironment webHostEnvironment)
 		{
