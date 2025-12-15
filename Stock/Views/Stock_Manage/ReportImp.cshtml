@@ -20,14 +20,13 @@
                 <div class="row mb-4">
                     <div class="col-md-4">
                         <label class="form-label fw-bold">Mã Sản Phẩm <span class="text-danger">*</span></label>
-                        <input type="text" name="productCode" class="form-control form-control-lg border-success fw-bold"
+                        <input type="text" name="productCode" class="form-control fw-bold border-success"
                                placeholder="VD: SB001" value="@ViewBag.EnteredCode" required />
                     </div>
                     <div class="col-md-8">
                         <label class="form-label fw-bold">Tên Sản Phẩm <span class="text-danger">*</span></label>
-                        <input type="text" name="productName" class="form-control form-control-lg fw-bold"
+                        <input type="text" name="productName" class="form-control fw-bold"
                                placeholder="Nhập tên sản phẩm..." value="@ViewBag.EnteredName" required />
-                        <small class="text-muted">Nếu mã chưa có, hệ thống sẽ dùng tên này để tạo mới.</small>
                     </div>
                 </div>
 
@@ -36,9 +35,11 @@
                         <label class="form-label fw-bold">Thời gian nhập</label>
                         <input asp-for="ImportDateTime" class="form-control" type="datetime-local" value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" />
                     </div>
+
                     <div class="col-md-6 mb-3">
-                        <label class="form-label fw-bold">Đơn vị tính</label>
-                        <input asp-for="Unit" class="form-control" placeholder="Ví dụ: Cái..." required />
+                        <label class="form-label fw-bold">Người thực hiện <span class="text-danger">*</span></label>
+                        <input asp-for="EmployeeName" class="form-control" placeholder="Nhập tên nhân viên..." required />
+                        <span asp-validation-for="EmployeeName" class="text-danger small"></span>
                     </div>
                 </div>
 
@@ -48,20 +49,26 @@
                         <input asp-for="ImportQuantity" class="form-control border-success fw-bold fs-5" type="number" value="0" min="1" />
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label class="form-label fw-bold">Giá nhập </label>
+                        <label class="form-label fw-bold">Đơn vị tính</label>
+                        <input asp-for="Unit" class="form-control" placeholder="Ví dụ: Cái..." required />
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Giá nhập (Vốn)</label>
                         <div class="input-group">
                             <input asp-for="ImportPrice" class="form-control" type="number" value="0" min="0" />
                             <span class="input-group-text">VNĐ</span>
                         </div>
                     </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Ghi chú</label>
+                        <textarea asp-for="Note" class="form-control" rows="1"></textarea>
+                    </div>
                 </div>
 
-                <div class="mb-4">
-                    <label class="form-label fw-bold">Ghi chú</label>
-                    <textarea asp-for="Note" class="form-control" rows="2"></textarea>
-                </div>
-
-                <div class="d-grid gap-2">
+                <div class="d-grid gap-2 mt-3">
                     <button type="submit" class="btn btn-success btn-lg fw-bold shadow">💾 LƯU PHIẾU NHẬP</button>
                     <a asp-action="Index" class="btn btn-outline-secondary">Hủy bỏ</a>
                 </div>

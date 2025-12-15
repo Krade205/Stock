@@ -6,50 +6,118 @@
 <div class="container mt-4" style="max-width: 700px;">
     <div class="card shadow-lg border-0">
         <div class="card-header bg-danger text-white py-3">
-            <h4 class="mb-0 fw-bold text-center text-uppercase">⬆️ GHI NHẬN XUẤT KHO</h4>
+            <h4 class="mb-0 fw-bold text-center text-uppercase">⬆️ PHIẾU XUẤT KHO</h4>
         </div>
         <div class="card-body p-4">
 
             @if (TempData["Error"] != null)
             {
-                <div class="alert alert-danger fw-bold text-center">@TempData["Error"]</div>
+                <div class="alert alert-danger fw-bold text-center shadow-sm">@TempData["Error"]</div>
             }
 
             <form asp-action="ReportExp">
+
                 <div class="mb-4">
-                    <label class="form-label fw-bold fs-5">📦 Chọn Sản Phẩm</label>
-                    <select asp-for="ProductId" class="form-select form-select-lg border-danger" asp-items="ViewBag.ProductId">
-                        <option value="">-- Chọn sản phẩm --</option>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="form-label fw-bold fs-5 mb-0">📦 Chọn Sản Phẩm</label>
+
+                        <span id="stockLabel" class="badge bg-secondary fs-6 p-2 shadow-sm" style="display: none;">
+                            Tồn kho: <span id="stockValue" class="fw-bold text-warning" style="font-size: 1.2em;">0</span>
+                        </span>
+                    </div>
+
+                    <select asp-for="ProductId" id="ddlProduct" class="form-select form-select-lg border-danger fw-bold shadow-sm" asp-items="ViewBag.ProductId" onchange="updateStock()">
+                        <option value="">-- Nhấn để chọn sản phẩm --</option>
                     </select>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Thời gian xuất</label>
-                    <input asp-for="ExportDateTime" class="form-control" type="datetime-local" />
-                </div>
-                <div class="mb-3">
-                    <label class="form-label fw-bold text-danger">Số lượng xuất (-)</label>
-                    <input asp-for="ExportQuantity" class="form-control border-danger fw-bold" type="number" value="0" min="0" />
-                </div>
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Giá xuất</label>
-                    <input asp-for="ExportPrice" class="form-control" type="number" value="0" min="0" />
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Thời gian xuất</label>
+                        <input asp-for="ExportDateTime" class="form-control" type="datetime-local" value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Người thực hiện <span class="text-danger">*</span></label>
+                        <input asp-for="EmployeeName" class="form-control" placeholder="Nhập tên nhân viên..." required />
+                    </div>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Đơn vị tính <span class="text-danger">*</span></label>
-                    <input asp-for="Unit" class="form-control" placeholder="Ví dụ: Cái, Hộp, Kg..." required />
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold text-danger">Số lượng xuất (-)</label>
+                        <input asp-for="ExportQuantity" class="form-control border-danger fw-bold fs-5" type="number" value="0" min="1" />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Đơn vị tính</label>
+                        <input asp-for="Unit" class="form-control" placeholder="Ví dụ: Cái..." required />
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Ghi chú</label>
-                    <input asp-for="Note" class="form-control" placeholder="Nhập ghi chú nếu có..." />
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Giá xuất (Bán)</label>
+                        <div class="input-group">
+                            <input asp-for="ExportPrice" class="form-control" type="number" value="0" min="0" />
+                            <span class="input-group-text">VNĐ</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Ghi chú</label>
+                        <textarea asp-for="Note" class="form-control" rows="1"></textarea>
+                    </div>
                 </div>
 
                 <div class="d-grid gap-2 mt-4">
-                    <button type="submit" class="btn btn-danger btn-lg fw-bold shadow-sm">💾 LƯU XUẤT KHO</button>
-                    <a asp-action="Index" class="btn btn-secondary">Quay lại danh sách</a>
+                    <button type="submit" class="btn btn-danger btn-lg fw-bold shadow">💾 LƯU PHIẾU XUẤT</button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">Hủy bỏ</a>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<script>
+    // 1. Tạo một danh sách (Map) chứa ID và Số lượng tồn từ Server gửi xuống
+    var stockData = {};
+
+    @if (ViewBag.Products != null)
+    {
+        foreach (var p in (IEnumerable<Stock.Models.Product>)ViewBag.Products)
+        {
+            @:stockData["@p.Id"] = @p.Quantity;
+        }
+    }
+
+    // 2. Hàm chạy khi thay đổi Dropdown
+    function updateStock() {
+        var dropdown = document.getElementById("ddlProduct");
+        var selectedId = dropdown.value;
+        var labelContainer = document.getElementById("stockLabel");
+        var valueSpan = document.getElementById("stockValue");
+
+        if (selectedId && stockData[selectedId] !== undefined) {
+            var quantity = stockData[selectedId];
+
+            // Cập nhật số
+            valueSpan.innerText = quantity;
+            labelContainer.style.display = "inline-block"; // Hiện label
+
+            // Đổi màu: Nếu hết hàng (0) thì màu đỏ, còn hàng thì màu xanh/vàng
+            if (quantity <= 0) {
+                labelContainer.className = "badge bg-danger fs-6 p-2 shadow-sm";
+                valueSpan.className = "fw-bold text-white";
+                valueSpan.innerText = "HẾT HÀNG (0)";
+            } else if (quantity < 5) {
+                labelContainer.className = "badge bg-warning text-dark fs-6 p-2 shadow-sm";
+                valueSpan.className = "fw-bold text-danger";
+            } else {
+                labelContainer.className = "badge bg-success fs-6 p-2 shadow-sm";
+                valueSpan.className = "fw-bold text-white";
+            }
+        } else {
+            labelContainer.style.display = "none"; // Ẩn nếu chưa chọn
+        }
+    }
+</script>

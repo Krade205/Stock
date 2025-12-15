@@ -1,0 +1,76 @@
+﻿@model Stock.Models.StockTransaction
+@{
+    ViewData["Title"] = "Xóa giao dịch";
+    bool isImport = Model.ImportQuantity > 0; // Kiểm tra xem là Nhập hay Xuất
+}
+
+<div class="container mt-5" style="max-width: 600px;">
+    <div class="card shadow border-0">
+        <div class="card-header bg-danger text-white py-3 text-center">
+            <h4 class="mb-0 fw-bold">⚠️ XÁC NHẬN XÓA GIAO DỊCH</h4>
+        </div>
+        <div class="card-body p-4">
+
+            <div class="alert alert-warning text-center fw-bold">
+                <i class="bi bi-exclamation-triangle-fill"></i> CẢNH BÁO:<br>
+                Hành động này sẽ xóa phiếu và <span class="text-decoration-underline">HOÀN TRẢ LẠI KHO</span> số lượng tương ứng.
+            </div>
+
+            <h5 class="text-center text-primary fw-bold mb-4">
+                @if (isImport)
+                {
+                    <span>PHIẾU NHẬP KHO</span>
+                }
+                else
+                {
+                    <span>PHIẾU XUẤT KHO</span>
+                }
+            </h5>
+
+            <dl class="row fs-5">
+                <dt class="col-sm-4 text-muted">Sản phẩm:</dt>
+                <dd class="col-sm-8 fw-bold">@Model.Product?.Name</dd>
+
+                <dt class="col-sm-4 text-muted">Thời gian:</dt>
+                <dd class="col-sm-8">
+                    @if (isImport)
+                    {
+                        @Model.ImportDateTime.ToString("dd/MM/yyyy HH:mm")
+                    }
+                    else
+                    {
+                        @Model.ExportDateTime?.ToString("dd/MM/yyyy HH:mm")
+                    }
+                </dd>
+
+                <dt class="col-sm-4 text-muted">Số lượng:</dt>
+                <dd class="col-sm-8 fw-bold @(isImport ? "text-success" : "text-danger")">
+                    @if (isImport)
+                    {
+                        <span>+@Model.ImportQuantity @Model.Unit</span>
+                    }
+                    else
+                    {
+                        <span>-@Model.ExportQuantity @Model.Unit</span>
+                    }
+                </dd>
+
+                <dt class="col-sm-4 text-muted">Người tạo:</dt>
+                <dd class="col-sm-8 text-primary">
+                    @(string.IsNullOrEmpty(Model.EmployeeName) ? "---" : Model.EmployeeName)
+                </dd>
+            </dl>
+
+            <form asp-action="Delete" class="mt-4">
+                <input type="hidden" asp-for="Id" />
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-danger btn-lg fw-bold shadow">
+                        🗑️ XÁC NHẬN XÓA & HOÀN KHO
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">Hủy bỏ</a>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>

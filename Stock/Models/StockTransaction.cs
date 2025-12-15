@@ -8,6 +8,8 @@ namespace Stock.Models
     {
         [Key]
         public int Id { get; set; }
+        [Display(Name = "Tên nhân viên")]
+        public string? EmployeeName { get; set; }
 
         // --- KHÓA NGOẠI ---
         [Required]

@@ -4,50 +4,79 @@
 }
 
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="text-success fw-bold">⬇️ LỊCH SỬ NHẬP HÀNG</h2>
-        <div>
-            <a asp-action="ReportImp" class="btn btn-success fw-bold">+ Nhập thêm hàng</a>
-            <a asp-action="Index" class="btn btn-secondary">Xem tất cả</a>
-        </div>
-    </div>
-
-    <div class="card shadow-sm border-success">
-        <div class="card-header bg-success text-white">
-            <h5 class="mb-0">Danh sách phiếu nhập</h5>
+    <div class="card shadow border-0">
+        <div class="card-header bg-success text-white py-3 d-flex justify-content-between align-items-center">
+            <h4 class="mb-0 fw-bold text-uppercase">⬇️ LỊCH SỬ NHẬP KHO</h4>
+            <a asp-action="Index" class="btn btn-light text-success fw-bold btn-sm">Quay lại Dashboard</a>
         </div>
         <div class="card-body p-0">
-            <table class="table table-hover table-striped align-middle mb-0 text-center">
-                <thead class="table-success">
-                    <tr>
-                        <th>Ngày nhập</th>
-                        <th class="text-start">Sản phẩm</th>
-                        <th>Số lượng</th>
-                        <th>Giá vốn</th>  
-                        <th>Tổng tiền nhập</th>
-                        <th>Tồn sau nhập</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in Model)
-                    {
+            <div class="table-responsive">
+                <table class="table table-hover table-striped mb-0 align-middle">
+                    <thead class="bg-light text-secondary">
                         <tr>
-                            <td>@item.ImportDateTime.ToString("dd/MM/yyyy HH:mm")</td>
-                            <td class="text-start fw-bold text-primary">@item.Product?.Name</td>
-
-                            <td class="fw-bold text-success fs-5">+@item.ImportQuantity</td>
-
-                            <td>@item.ImportPrice.ToString("N0") ₫</td>
-
-                            <td class="fw-bold text-dark">
-                                @((item.ImportQuantity * item.ImportPrice).ToString("N0")) ₫
-                            </td>
-
-                            <td>@item.StockRemaining</td>
+                            <th class="py-3 ps-4">Thời gian</th>
+                            <th class="py-3">Mã SP</th>
+                            <th class="py-3">Tên sản phẩm</th>
+                            <th class="py-3 text-center">Số lượng</th>
+                            <th class="py-3 text-end">Giá nhập</th>
+                            <th class="py-3 text-center">Người thực hiện</th>
+                            <th class="py-3">Ghi chú</th>
+                            <!--<th class="py-3 text-center">Hành động</th>-->
                         </tr>
-                    }
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td class="ps-4">@item.ImportDateTime.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td class="fw-bold text-primary">@item.Product?.Code</td>
+                                    <td class="fw-bold">@item.Product?.Name</td>
+
+                                    <td class="text-center">
+                                        <span class="badge bg-success bg-opacity-10 text-success fs-6 px-3">
+                                            +@item.ImportQuantity @item.Unit
+                                        </span>
+                                    </td>
+
+                                    <td class="text-end fw-bold text-secondary">
+                                        @item.ImportPrice.ToString("#,##0") đ
+                                    </td>
+
+                                    <td class="text-center text-primary fw-bold">
+                                        @if (!string.IsNullOrEmpty(item.EmployeeName))
+                                        {
+                                            <span>👤 @item.EmployeeName</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small">---</span>
+                                        }
+                                    </td>
+
+                                    <td class="text-muted small fst-italic">@item.Note</td>
+
+                                    <!--<td class="text-center">
+                                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger btn-sm" title="Xóa / Hoàn tác">
+                                            🗑️
+                                        </a>
+                                    </td>-->
+                                    
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="8" class="text-center py-5 text-muted">
+                                    Currently no data available.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
