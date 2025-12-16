@@ -31,7 +31,8 @@ namespace Stock.Controllers
             using var client = new HttpClient();
 
             await client.PostAsJsonAsync(
-                "http://192.168.1.50/display", // IP ESP32
+                "http://IP_ESP32/display",  // IP ESP32
+              //"http://192.168.1.50/display", 
                 new
                 {
                     name = product.Name,
