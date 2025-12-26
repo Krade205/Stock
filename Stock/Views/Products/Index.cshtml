@@ -17,15 +17,6 @@
                class="btn btn-success fw-bold">
                 + THÊM SẢN PHẨM MỚI
             </a>
-
-            <form asp-controller="Lcd"
-                  asp-action="UpdateProductToLcd"
-                  method="post">
-                <input type="hidden" name="productId" value="@Model.First().Id" />
-                <button class="btn btn-warning fw-bold">
-                    📟 CẬP NHẬT LCD
-                </button>
-            </form>
         </div>
     }
 </div>
@@ -46,6 +37,17 @@
                 <div class="admin-actions">
                     <a asp-action="Edit" asp-route-id="@item.Id" class="btn-icon bg-warning" title="Sửa">✎</a>
                     <a asp-action="Delete" asp-route-id="@item.Id" class="btn-icon bg-danger" title="Xóa">✕</a>
+                    <form asp-controller="Lcd"
+                          asp-action="UpdateProductToLcd"
+                          method="post"
+                          style="display:inline;">
+                        <input type="hidden" name="productId" value="@item.Id" />
+                        <button type="submit"
+                                class="btn-icon bg-info"
+                                title="Hiển thị LCD">
+                            📟
+                        </button>
+                    </form>
                 </div>
             }
 
